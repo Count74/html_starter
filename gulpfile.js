@@ -6,10 +6,20 @@ const autoprefixer = require('gulp-autoprefixer');
 const cleancss = require('gulp-clean-css');
 const fileinclude = require('gulp-file-include');
 const concat = require('gulp-concat');
+	// Подключаем gulp-uglify-es
 const uglify = require('gulp-uglify-es').default;
+
+		// Подключаем gulp-imagemin для работы с изображениями
 const imagemin = require('gulp-imagemin');
+ 
+// Подключаем модуль gulp-newer
 const newer = require('gulp-newer');
+ 
+// Подключаем модуль del
 const del = require('del');
+
+const pug = require('gulp-pug');
+
 
 function server() {
   browserSync.init({ // Инициализация Browsersync
@@ -21,9 +31,10 @@ function server() {
 
 function watching() {
   watch('app/**/scss/**/*', styles);
-	watch('app/html/**/*.html', html);
+	// watch('app/html/**/*.html', html);
+	watch('app/pug/**/*.pug', pughtml);
 	watch(['app/**/*.js', '!app/**/*.min.js'], scripts);
-	watch('app/img/**/*', images);
+	watch('app/imag/**/*', images);
   watch(['app/*.html', 'app/css/**/*.css']).on('change', browserSync.reload);
 }
 
@@ -34,7 +45,7 @@ function styles() {
 	.pipe(concat('app.min.css')) // Конкатенируем в файл app.min.js
 	.pipe(autoprefixer({ overrideBrowserslist: ['last 10 versions'], grid: true })) // Создадим префиксы с помощью Autoprefixer
 	.pipe(cleancss( { level: { 1: { specialComments: 0 } }/* , format: 'beautify' */ } )) // Минифицируем стили
-	// .pipe(sourcemaps.write())
+	.pipe(sourcemaps.write())
 	.pipe(dest('app/css/')) // Выгрузим результат в папку "app/css/"
 	.pipe(browserSync.stream()) // Сделаем инъекцию в браузер
 }
@@ -49,8 +60,7 @@ function html() {
 function scripts() {
 	return src([ // Берём файлы из источников
 		//'node_modules/jquery/dist/jquery.min.js', // Пример подключения библиотеки
-		// 'node_modules/bootstrap/js/dist/carousel.js',
-		// 'app/js/script.js', // Пользовательские скрипты, использующие библиотеку, должны быть подключены в конце
+		'app/js/script.js', // Пользовательские скрипты, использующие библиотеку, должны быть подключены в конце
 		])
 	.pipe(concat('app.min.js')) // Конкатенируем в один файл
 	.pipe(uglify({mangle: {toplevel: true}})) // Сжимаем JavaScript
@@ -83,10 +93,19 @@ function cleandist() {
 	return del('dist/**/*', { force: true }) // Удаляем всё содержимое папки "dist/"
 }
 
+function pughtml() {
+	return src('./app/pug/pages/**/*.pug')
+		.pipe(pug({
+			pretty: true
+		}))
+		.pipe(dest('./app/'));
+}
+
 exports.server = server;
 exports.watching = watching;
 exports.styles = styles;
 exports.html = html;
 exports.scripts = scripts;
-exports.build = series(cleandist, styles, scripts, images, html, buildcopy);
+exports.pughtml = pughtml;
+exports.build = series(cleandist, styles, scripts, images, pughtml, buildcopy);
 exports.default = parallel(server, watching);

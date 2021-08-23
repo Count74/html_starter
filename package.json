@@ -18,6 +18,7 @@
     "gulp-file-include": "^2.3.0",
     "gulp-imagemin": "^7.1.0",
     "gulp-newer": "^1.4.0",
+    "gulp-pug": "^5.0.0",
     "gulp-sass": "^4.1.0",
     "gulp-uglify-es": "^2.0.0",
     "yargs-parser": "^5.0.1"
