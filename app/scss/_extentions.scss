@@ -1,0 +1,19 @@
+%font {
+    font-family: $font_family;
+    color: $color_text;
+  }
+  
+  %font_normal {
+    @extend %font;
+    font-weight: normal;
+  }
+  
+  %font_semibold {
+    @extend %font;
+    font-weight: 600;
+  }
+  
+  %font_bold {
+    @extend %font;
+    font-weight: bold;
+  }
