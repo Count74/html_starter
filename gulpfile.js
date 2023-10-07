@@ -1,16 +1,16 @@
 const { src, dest, parallel, series, watch } = require('gulp');
 const browserSync = require('browser-sync').create();
-//const sourcemaps = require('gulp-sourcemaps');
-const scss = require('gulp-sass');
+const sourcemaps = require('gulp-sourcemaps');
+const scss = require("gulp-sass")(require("sass"));
 const autoprefixer = require('gulp-autoprefixer');
 const cleancss = require('gulp-clean-css');
 const fileinclude = require('gulp-file-include');
 const concat = require('gulp-concat');
-	// Подключаем gulp-uglify-es
+// Подключаем gulp-uglify-es
 const uglify = require('gulp-uglify-es').default;
 
-		// Подключаем gulp-imagemin для работы с изображениями
-const imagemin = require('gulp-imagemin');
+// Подключаем gulp-imagemin для работы с изображениями
+const imagemin = import('gulp-imagemin');
  
 // Подключаем модуль gulp-newer
 const newer = require('gulp-newer');
@@ -20,6 +20,9 @@ const del = require('del');
 
 const pug = require('gulp-pug');
 
+// подключаем вебпак
+// const webpack = require("webpack");
+// const webpackConfig = require("./webpack.config.js");
 
 function server() {
   browserSync.init({ // Инициализация Browsersync
@@ -30,22 +33,22 @@ function server() {
 }
 
 function watching() {
-  watch('app/**/scss/**/*', styles);
+	watch('app/**/scss/**/*', styles);
 	// watch('app/html/**/*.html', html);
 	watch('app/pug/**/*.pug', pughtml);
-	watch(['app/**/*.js', '!app/**/*.min.js'], scripts);
+	watch(["app/**/*.js", "!app/**/scripts-bundled.js"], scripts);
 	watch('app/img_src/**/*', images);
-  watch(['app/*.html', 'app/css/**/*.css']).on('change', browserSync.reload);
+	watch(['app/*.html', 'app/css/**/*.css']).on('change', browserSync.reload);
 }
 
 function styles() {
   return src('app/scss/main.scss') // Выбираем источник: "app/sass/main.sass" или "app/less/main.less"
-	//.pipe(sourcemaps.init())
+	.pipe(sourcemaps.init())
 	.pipe(scss()) // Преобразуем значение переменной "preprocessor" в функцию
 	.pipe(concat('app.min.css')) // Конкатенируем в файл app.min.js
 	.pipe(autoprefixer({ overrideBrowserslist: ['last 10 versions'], grid: true })) // Создадим префиксы с помощью Autoprefixer
 	.pipe(cleancss( { level: { 1: { specialComments: 0 } }/* , format: 'beautify' */ } )) // Минифицируем стили
-	//.pipe(sourcemaps.write())
+	.pipe(sourcemaps.write())
 	.pipe(dest('app/css/')) // Выгрузим результат в папку "app/css/"
 	.pipe(browserSync.stream()) // Сделаем инъекцию в браузер
 }
@@ -68,6 +71,7 @@ function scripts() {
 	.pipe(browserSync.stream()) // Триггерим Browsersync для обновления страницы
 }
 
+
 function images() {
 	return src('app/img_src/**/*') // Берём все изображения из папки источника
 	.pipe(newer('app/images/')) // Проверяем, было ли изменено (сжато) изображение ранее
@@ -80,15 +84,19 @@ function cleanimg() {
 }
  
 function buildcopy() {
-	return src([ // Выбираем нужные файлы
-		'app/css/**/*.min.css',
-		'app/js/**/*.min.js',
-		'app/images/**/*',
-		'app/*.html',
-		'app/fonts/**/*',
-		], { base: 'app' }) // Параметр "base" сохраняет структуру проекта при копировании
-	.pipe(dest('dist')) // Выгружаем в папку с финальной сборкой
-}
+	return src(
+	  [
+		// Выбираем нужные файлы
+		"app/css/**/*.min.css",
+		"app/js/scripts-bundled.js",
+		"app/images/**/*",
+		"app/*.html",
+	  ],
+	  { base: "app" }
+	) // Параметр "base" сохраняет структуру проекта при копировании
+	  .pipe(dest("dist")); // Выгружаем в папку с финальной сборкой
+  }
+  
  
 function cleandist() {
 	return del('dist/**/*', { force: true }) // Удаляем всё содержимое папки "dist/"
